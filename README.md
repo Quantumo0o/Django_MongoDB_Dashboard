@@ -1,7 +1,3 @@
-Here is the updated README with the specified Python version and package dependencies:
-
----
-
 # 🌟 Data Visualization Dashboard 🌟
 
 Welcome to the Data Visualization Dashboard! This innovative project is crafted to empower users with interactive and insightful visualizations, seamlessly blending the power of Django, MongoDB, and Google Charts. Whether you're a data enthusiast, analyst, or developer, this dashboard is your gateway to uncovering hidden insights and making data-driven decisions with ease.
@@ -117,7 +113,5 @@ We welcome contributions! If you have any ideas, suggestions, or improvements, p
 This project is licensed under the Apache License. See the [LICENSE](LICENSE) file for details.
 
 ---
-
-Happy visualizing! 🌟
 
 
