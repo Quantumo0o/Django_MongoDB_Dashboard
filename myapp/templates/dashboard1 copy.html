@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Visualization Dashboard</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include Plotly.js CSS -->
+    <link rel="stylesheet" href="https://cdn.plot.ly/plotly-2.5.1.min.css">
+    <!-- Custom CSS -->
+    <style>
+        .chart-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .plotly-chart {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4 mb-4">Data Visualization Dashboard</h1>
+
+        <!-- Filters section -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <label for="endYearFilter">End Year:</label>
+                <select id="endYearFilter" class="form-control">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="topicFilter">Topic:</label>
+                <select id="topicFilter" class="form-control">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="sectorFilter">Sector:</label>
+                <select id="sectorFilter" class="form-control">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="regionFilter">Region:</label>
+                <select id="regionFilter" class="form-control">
+                    <option value="">All</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Intensity Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Total Intensity by Country</div>
+            <div id="intensity-chart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Yearly Trends Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Total Intensity by Year</div>
+            <div id="yearly-trends-chart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Country Intensity Chart -->
+        <div class="chart-container">
+            <div class="chart-title">Intensity by Country</div>
+            <div id="country-intensity-chart" class="plotly-chart"></div>
+        </div>
+
+    </div>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.5.1.min.js"></script>
+    <!-- Include your custom JavaScript -->
+    {% load static %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

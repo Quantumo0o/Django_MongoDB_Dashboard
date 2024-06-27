@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insights Dashboard</title>
+    <!-- Load Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <style>
+        /* General styles */
+        body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f3f4f6; /* Light gray background */
+}
+
+.container {
+    width: 80%; /* Adjust width as needed */
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Rounded corners */
+}
+
+/* Styles for form */
+form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+form label {
+    flex: 0 0 calc(25% - 10px); /* Fixed width for labels */
+    font-weight: bold;
+    margin-right: 10px;
+    align-self: center;
+}
+
+form select, form input[type="text"] {
+    flex: 1; /* Flexible width for inputs */
+    padding: 12px;
+    font-size: 1.2rem; /* Responsive font size */
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 12px 24px;
+    font-size: 1.2rem; /* Responsive font size */
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Styles for table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 1.2rem; /* Responsive font size */
+    background-color: #ffffff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Rounded corners */
+}
+
+table th, table td {
+    border: 1px solid #dddddd;
+    padding: 4px;
+    text-align: center;
+}
+
+table th {
+    background-color: #f0f0f0; /* Light gray background for headers */
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Even rows light background */
+}
+
+table tr:hover {
+    background-color: #f1f1f1; /* Hover effect */
+}
+
+/* Styles for charts */
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 600px;
+    margin-top: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Rounded corners */
+}
+
+#intensity_chart, #combo_chart, #topic_relevance_chart {
+    width: 100%;
+    height: 550px;
+    margin-top: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Rounded corners */
+}
+.hidden {
+    display: none;
+}
+
+
+    </style>
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart', 'bar']});
+        google.charts.setOnLoadCallback(drawCharts);
+    
+        function drawCharts() {
+            fetchChartData('{% url "insights_api" %}', function(data) {
+                if (data) {
+                    drawIntensityChart(data.aggregated_intensity);
+                    drawCombinationChart(data.aggregated_likelihood_relevance);
+                    drawTopicRelevanceChart(data.aggregated_topic_relevance);
+                }
+            });
+        }
+    
+        function fetchChartData(url, callback) {
+            var published_year = document.getElementById('published_year').value;
+            var topic = document.getElementById('topic').value;
+            var sector = document.getElementById('sector').value;
+            var region = document.getElementById('region').value;
+    
+            var apiUrl = url + '?';
+            var params = [];
+
+            if (published_year) params.push('published_year=' + encodeURIComponent(published_year));
+            if (topic) params.push('topic=' + encodeURIComponent(topic));
+            if (sector) params.push('sector=' + encodeURIComponent(sector));
+            if (region) params.push('region=' + encodeURIComponent(region));
+            apiUrl += params.join('&');
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    callback(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error); // Log errors for debugging
+                });
+        }
+    
+        function drawIntensityChart(data) {
+    var intensityData = [['Country', 'Total Intensity']];
+    data.sort((a, b) => b.total_intensity - a.total_intensity);
+    data.forEach(insight => {
+        if (insight.country !== '') { // Add this condition to exclude empty country strings
+            intensityData.push([insight.country, insight.total_intensity]);
+        }
+    });
+
+    if (document.getElementById('intensity_chart').parentElement.classList.contains("hidden"))
+        document.getElementById('intensity_chart').parentElement.classList.remove('hidden');
+  
+    if (intensityData.length === 1) {
+        document.getElementById('intensity_chart').parentElement.classList.add('hidden');
+        return;
+    }
+
+    var intensityDataTable = google.visualization.arrayToDataTable(intensityData);
+
+    var intensityOptions = {
+        title: 'Intensity by Country',
+        titleTextStyle: {
+            fontSize: 24,
+            color: '#3949AB', // Dark blue
+            bold: true,
+        },
+        legend: { position: 'none' },
+        hAxis: {
+            title: 'Country',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            textStyle: {
+                fontSize: 10,
+                fontName: 'Arial',
+                bold: true,
+                color: '#424242'
+            },
+            slantedText: true,
+            slantedTextAngle: 90,
+        },
+        vAxis: {
+            title: 'Total Intensity',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            gridlines: { color: '#e0e0e0' },
+            baselineColor: '#bdbdbd',
+            textStyle: { fontSize: 12, color: '#424242' }
+        },
+        backgroundColor: { fill: '#E8EAF6', stroke: '#E8EAF6', strokeWidth: 1 }, // Light blue-gray
+        chartArea: { width: '80%', height: '70%' },
+        colors: ['#5C6BC0'], // Moderate blue
+        animation: {
+            startup: true,
+            duration: 1000,
+            easing: 'out'
+        },
+        series: {
+            0: { areaOpacity: 0.8 }
+        }
+    };
+
+    var intensityChart = new google.visualization.ColumnChart(document.getElementById('intensity_chart'));
+    intensityChart.draw(intensityDataTable, intensityOptions);
+}
+
+function drawCombinationChart(data) {
+    var comboData = [['Country', 'Avg Likelihood', 'Avg Relevance']];
+    data.sort((a, b) => b.total_likelihood - a.total_likelihood);
+    data.forEach(insight => {
+        if (insight.country !== '') {
+            comboData.push([insight.country, insight.total_likelihood, insight.total_relevance]);
+        }
+    });
+    if (document.getElementById('combo_chart').parentElement.classList.contains("hidden"))
+        document.getElementById('combo_chart').parentElement.classList.remove('hidden');
+    if (comboData.length === 1) {
+        document.getElementById('combo_chart').parentElement.classList.add('hidden');
+        return;
+    }
+
+
+    var comboDataTable = google.visualization.arrayToDataTable(comboData);
+    
+
+    var comboOptions = {
+        title: 'Likelihood and Relevance by Country',
+        titleTextStyle: {
+            fontSize: 24,
+            color: '#558B2F', // Dark green
+            bold: true
+        },
+        seriesType: 'bars',
+        legend: { position: 'top', alignment: 'center', textStyle: { color: '#424242', fontSize: 12 } },
+        series: {
+            0: { type: 'line', color: '#d0f400', lineWidth: 3, pointSize: 5, areaOpacity: 0.4, targetAxisIndex: 0 }, // Light green
+            1: { type: 'bars', color: '#115f9a', areaOpacity: 0.7, targetAxisIndex: 1 } // Dark green
+        },
+        hAxis: {
+            title: 'Country',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            textStyle: {
+                fontSize: 10,
+                fontName: 'Arial',
+                bold: true,
+                color: '#424242'
+            },
+            slantedText: true,
+            slantedTextAngle: 90,
+        },
+        vAxes: {
+            0: { // Primary axis
+                title: 'Avg Likelihood',
+                minValue: 0,
+                titleTextStyle: { fontSize: 14, color: '#424242', bold: true }
+            },
+            1: { // Secondary axis
+                title: 'Avg Relevance',
+                minValue: 0,
+                titleTextStyle: { fontSize: 14, color: '#558B2F', bold: true },
+                gridlines: { color: '#e0e0e0' },
+                baselineColor: '#bdbdbd',
+                textStyle: { fontSize: 12, color: '#558B2F' }
+            }
+        },
+        backgroundColor: { fill: '#E0F2F1', stroke: '#E0F2F1', strokeWidth: 1 }, // Light green-blue
+        chartArea: { width: '80%', height: '70%' },
+        colors: ['#558B2F', '#9CCC65'], // Dark and light green
+        animation: {
+            startup: true,
+            duration: 1000,
+            easing: 'out'
+        },
+
+    };
+
+    var comboChart = new google.visualization.ComboChart(document.getElementById('combo_chart'));
+    comboChart.draw(comboDataTable, comboOptions);
+}
+
+function drawTopicRelevanceChart(data) {
+    var topicRelevanceData = [['Topic', 'Avg Intensity', 'Avg Relevance']];
+    data.sort((a,b) => b.total_relevance - a.total_relevance)
+    data.forEach(insight => {
+        if (insight.topic !== '') {
+            topicRelevanceData.push([insight.topic, insight.total_intensity, insight.total_relevance]);
+        }
+    });
+    console.log(topicRelevanceData)
+    if (document.getElementById('topic_relevance_chart').parentElement.classList.contains("hidden"))
+        document.getElementById('topic_relevance_chart').parentElement.classList.remove('hidden');
+    if (topicRelevanceData.length === 1) {
+        document.getElementById('topic_relevance_chart').parentElement.classList.add('hidden');
+        return;
+    }
+
+    var topicRelevanceDataTable = google.visualization.arrayToDataTable(topicRelevanceData);
+
+    var topicRelevanceOptions = {
+        title: 'Intensity and Relevance by Topic',
+        titleTextStyle: {
+            fontSize: 24,
+            color: '#5E35B1', // Dark purple
+            bold: true,
+        },
+        legend: { position: 'top', alignment: 'center', textStyle: { color: '#424242', fontSize: 12 } },
+        seriesType: 'bars',
+        series: { 1: { type: 'line', color: '#9575CD', lineWidth: 3, pointSize: 5, areaOpacity: 0.8, targetAxisIndex: 1 } }, // Light purple
+        hAxis: {
+            title: 'Topic',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            textStyle: {
+                fontSize: 10,
+                fontName: 'Arial',
+                bold: true,
+                color: '#424242'
+            },
+            slantedText: true,
+            slantedTextAngle: 90,
+        },
+        vAxis: {
+            0: {
+            title: 'Avg Intensity',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            gridlines: { color: '#e0e0e0' },
+            baselineColor: '#bdbdbd',
+            textStyle: { fontSize: 12, color: '#424242' }
+            },
+            1: {
+            title: 'Avg Relevance',
+            titleTextStyle: { fontSize: 14, color: '#424242', bold: true },
+            gridlines: { color: '#e0e0e0' },
+            baselineColor: '#bdbdbd',
+            textStyle: { fontSize: 12, color: '#424242' }
+            }
+            
+        },
+        backgroundColor: { fill: '#D1C4E9', stroke: '#D1C4E9', strokeWidth: 1 }, // Light purple-gray
+        chartArea: { width: '80%', height: '70%' },
+        colors: ['#5E35B1', '#9575CD'], // Dark and light purple
+        animation: {
+            startup: true,
+            duration: 1000,
+            easing: 'out'
+        },
+        
+    };
+
+    var topicRelevanceChart = new google.visualization.ComboChart(document.getElementById('topic_relevance_chart'));
+    topicRelevanceChart.draw(topicRelevanceDataTable, topicRelevanceOptions);
+}
+
+// Function to resize charts when window is resized
+window.addEventListener('resize', function() {
+    drawCharts(); // Redraw charts on resize
+});
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Insights Dashboard</h1>
+
+        <!-- Filters -->
+        <form onsubmit="event.preventDefault(); fetchChartData('{% url 'insights_api' %}', drawCharts);">
+            <label for="published_year">Published Year:</label>
+            <select id="published_year" name="published_year">
+                <option value="">All</option>
+                {% for year in published_dates %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="topic">Topic:</label>
+            <select id="topic" name="topic">
+                <option value="">All</option>
+                {% for topic in topics %}
+                    <option value="{{ topic }}">{{ topic }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="sector">Sector:</label>
+            <select id="sector" name="sector">
+                <option value="">All</option>
+                {% for sector in sectors %}
+                    <option value="{{ sector }}">{{ sector }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="region">Region:</label>
+            <select id="region" name="region">
+                <option value="">All</option>
+                {% for region in regions %}
+                    <option value="{{ region }}">{{ region }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Apply Filters</button>
+        </form>
+    </div>
+
+   
+
+    <!-- Charts -->
+    <div class="container">
+        <div class="chart-container">
+            <div id="intensity_chart"></div>
+        </div>
+        <div class="chart-container">
+            <div id="combo_chart"></div>
+        </div>
+        <div class="chart-container">
+            <div id="topic_relevance_chart"></div>
+        </div>
+    </div>
+     <div class="container">
+        <h2>Field Null and Valid Counts</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Null Count</th>
+                    <th>Valid Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field, counts in field_counts.items %}
+                <tr>
+                    <td>{{ field }}</td>
+                    <td>{{ counts.null_count }}</td>
+                    <td>{{ counts.valid_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
